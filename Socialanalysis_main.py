@@ -141,4 +141,7 @@ class SocialDataAnalysis():
             del(result["index"])
             return result
             
-    
+    def count_location(self,df):
+        num=df['user_location'].value_counts()
+        return num
+        
