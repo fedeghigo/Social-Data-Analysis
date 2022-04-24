@@ -4,6 +4,17 @@ import numpy as np
 import tweepy as tw 
 from tqdm import tqdm
 from typing import List
+from wordcloud import WordCloud
+import matplotlib.pyplot as plt
+import nltk
+from nltk.corpus import stopwords
+from nltk.tokenize import word_tokenize
+import re
+import string
+from gensim.models.phrases import Phrases, Phraser
+from gensim.models import Word2Vec
+import seaborn as sns
+from sklearn.cluster import KMeans
 
 
 class SocialDataAnalysis():
@@ -144,4 +155,70 @@ class SocialDataAnalysis():
     def count_location(self,df):
         num=df['user_location'].value_counts()
         return num
+    
+    
+    
+class SocialDataAnalysisML():
+    """
+    Init of the Model
+    """
+    def __init__(
+        self,
+        df
+      
+    ):
+        
+             
+        self.df= df
+    
+    def create_hastaglist(self):
+        hashtags_col = self.df[~self.df['hashtags'].isna()]['hashtags']
+        hashtags_col = hashtags_col.apply(eval)
+        hashtags = pd.Series([hashtag for hashtags_list in hashtags_col for hashtag in hashtags_list])
+        return hashtags
+    
+    def __wordcloud(self):
+        wordcloud = WordCloud(width=4000, height=2000, background_color="white", mode="RGBA", prefer_horizontal=0.5)
+        return wordcloud.fit_words(self.create_hastaglist().value_counts())
+    
+    def plot_wordcloud(self):
+        plt.figure(figsize=(15,10))
+        plt.axis("off")
+        return plt.imshow(self.__wordcloud())
+    
+    def clean(self):
+        """Create Filtered and cleaned sentence from the df
+
+        Returns:
+            _type_: _description_
+        """
+        nltk.download('stopwords')
+        nltk.download('punkt')
+        # rimozione links
+        example_sent = self.df.loc[1, 'text']
+        self.filtered_sentence = re.sub(r"http\S+", "", example_sent)
+        
+        # lowercase
+        self.filtered_sentence = self.filtered_sentence.lower()
+        
+        # # stopwords
+        stop_words = set(stopwords.words('italian'))
+        word_tokens = word_tokenize(self.filtered_sentence)
+        self.filtered_sentence = [w for w in word_tokens if not w in stop_words]
+
+         # rimuovo rt pattern
+        if self.filtered_sentence[0] == 'rt':
+             self.filtered_sentence = self.filtered_sentence[4:]
+
+        # # rimuovo punteggiatura
+        self.filtered_sentence = list(filter(lambda token: token not in string.punctuation, self.filtered_sentence))
+        return self.filtered_sentence
+    
+    # def clean_vs_noclean(self):
+    #     self.vs=pd.DataFrame()
+    #     tt= pd.DataFrame(self.filtered_sentence)
+    #     #self.df['cleaned'] = self.df.apply(self.clean, axis=1)
+    #     self.vs["old"]= self.df["text"]
+    #     self.vs["cleaned"]= tt
+    #     return self.vs
         
