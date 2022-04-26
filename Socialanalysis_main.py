@@ -43,6 +43,7 @@ class SocialDataAnalysis():
             api: object for make query 
         """
         auth = tw.OAuthHandler(self.API_KEY, self.API_KEY_SECRET)
+        ## wait_on_rate_limit=True fa si di poter scaricare piu dati oltre i 100 definibili , perche aspetta x per poi ri fare la richiesta
         self.api = tw.API(auth, wait_on_rate_limit=True)
         return self.api
     
