@@ -43,6 +43,7 @@ class SocialDataAnalysis():
             api: object for make query 
         """
         auth = tw.OAuthHandler(self.API_KEY, self.API_KEY_SECRET)
+        ## wait_on_rate_limit=True fa si di poter scaricare piu dati oltre i 100 definibili , perche aspetta x per poi ri fare la richiesta
         self.api = tw.API(auth, wait_on_rate_limit=True)
         return self.api
     
@@ -229,6 +230,7 @@ class SocialDataAnalysisML():
     #     filtered_sentence = list(filter(lambda token: token not in string.punctuation, filtered_sentence))
     #     return filtered_sentence
 
+<<<<<<< HEAD
     # def clean_apply(self):
     #     self.df['cleaned'] = self.df.apply(self.clean, axis=1)
     #     return self.df['cleaned']
@@ -257,3 +259,17 @@ class SocialDataAnalysisML():
         model.build_vocab(self.sentences)
         model.train(self.sentences, total_examples=model.corpus_count, epochs=100)
         return model
+=======
+        # # rimuovo punteggiatura
+        self.filtered_sentence = list(filter(lambda token: token not in string.punctuation, self.filtered_sentence))
+        return self.filtered_sentence
+    
+    # def clean_vs_noclean(self):
+    #     self.vs=pd.DataFrame()
+    #     tt= pd.DataFrame(self.filtered_sentence)
+    #     #self.df['cleaned'] = self.df.apply(self.clean, axis=1)
+    #     self.vs["old"]= self.df["text"]
+    #     self.vs["cleaned"]= tt
+    #     return self.vs
+        
+>>>>>>> c25133c20ebf6992f09d907629adee3efd64cc7a
