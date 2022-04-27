@@ -170,6 +170,8 @@ class SocialDataAnalysisML():
         
              
         self.df= df
+        nltk.download('stopwords')
+        nltk.download('punkt')
     
     def create_hastaglist(self):
         hashtags_col = self.df[~self.df['hashtags'].isna()]['hashtags']
@@ -186,39 +188,72 @@ class SocialDataAnalysisML():
         plt.axis("off")
         return plt.imshow(self.__wordcloud())
     
-    def clean(self):
-        """Create Filtered and cleaned sentence from the df
+    # def clean_and_create(self):
+    #     """Create Filtered and cleaned sentence from the df
 
-        Returns:
-            _type_: _description_
-        """
-        nltk.download('stopwords')
-        nltk.download('punkt')
-        # rimozione links
-        example_sent = self.df.loc[1, 'text']
-        self.filtered_sentence = re.sub(r"http\S+", "", example_sent)
+    #     Returns:
+    #         _type_: _description_
+    #     """
+    #     nltk.download('stopwords')
+    #     nltk.download('punkt')
+    #     # rimozione links
+    #     example_sent = df2.loc[1, 'text']
+    #     self.filtered_sentence = re.sub(r"http\S+", "", example_sent)
         
-        # lowercase
-        self.filtered_sentence = self.filtered_sentence.lower()
+    #     # lowercase
+    #     self.filtered_sentence = self.filtered_sentence.lower()
         
-        # # stopwords
-        stop_words = set(stopwords.words('italian'))
-        word_tokens = word_tokenize(self.filtered_sentence)
-        self.filtered_sentence = [w for w in word_tokens if not w in stop_words]
+    #     # # stopwords
+    #     stop_words = set(stopwords.words('italian'))
+    #     word_tokens = word_tokenize(self.filtered_sentence)
+    #     self.filtered_sentence = [w for w in word_tokens if not w in stop_words]
 
-         # rimuovo rt pattern
-        if self.filtered_sentence[0] == 'rt':
-             self.filtered_sentence = self.filtered_sentence[4:]
+    #      # rimuovo rt pattern
+    #     if self.filtered_sentence[0] == 'rt':
+    #          self.filtered_sentence = self.filtered_sentence[4:]
 
-        # # rimuovo punteggiatura
-        self.filtered_sentence = list(filter(lambda token: token not in string.punctuation, self.filtered_sentence))
-        return self.filtered_sentence
+    #     # # rimuovo punteggiatura
+    #     self.filtered_sentence = list(filter(lambda token: token not in string.punctuation, self.filtered_sentence))
+    #     return self.filtered_sentence
+    # def clean(self):
+    #     # rimozione links
+    #     example_sent = self.df.loc[1, 'text']
+    #     #sentence = self.df['text']
+    #     filtered_sentence = re.sub(r"http\S+", "", example_sent)
+    #     filtered_sentence = filtered_sentence.lower()
+    #     stop_words = set(stopwords.words('italian'))
+    #     word_tokens = word_tokenize(filtered_sentence)
+    #     filtered_sentence = [w for w in word_tokens if not w in stop_words]
+    #     if filtered_sentence[0] == 'rt':
+    #         filtered_sentence = filtered_sentence[4:]
+    #     filtered_sentence = list(filter(lambda token: token not in string.punctuation, filtered_sentence))
+    #     return filtered_sentence
+
+    # def clean_apply(self):
+    #     self.df['cleaned'] = self.df.apply(self.clean, axis=1)
+    #     return self.df['cleaned']
+    # # def clean_df(self,column_name='clean'):
+    # #     self.df[column_name] = self.df.apply(self.clean_and_create(self.df), axis=1)
+        
+    def gensim_init(self,df_cleaned_column):
+        sent = [row.split() for row in df_cleaned_column]
+        phrases = Phrases(sent, min_count=10)
+        bigram = Phraser(phrases)
+        self.sentences = bigram[sent]
+        return sent
     
-    # def clean_vs_noclean(self):
-    #     self.vs=pd.DataFrame()
-    #     tt= pd.DataFrame(self.filtered_sentence)
-    #     #self.df['cleaned'] = self.df.apply(self.clean, axis=1)
-    #     self.vs["old"]= self.df["text"]
-    #     self.vs["cleaned"]= tt
-    #     return self.vs
-        
+    
+    def gensim_model(self):
+        from gensim.models import Word2Vec
+        model = Word2Vec(
+                window = 10, 
+                min_count = 5,
+                sample=6e-5,
+                alpha=0.03,
+                min_alpha=0.0007,
+                negative=10,
+                workers=2
+            )
+        model.build_vocab(self.sentences)
+        model.train(self.sentences, total_examples=model.corpus_count, epochs=100)
+        return model
