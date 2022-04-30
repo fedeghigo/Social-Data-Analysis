@@ -17,6 +17,51 @@ import seaborn as sns
 from sklearn.cluster import KMeans
 
 
+class Unlimited_Tweet():
+    """
+    _summary_
+
+    Returns:
+        _type_: _description_
+    """
+    def __init__(self, 
+                 barer_token) -> None:
+        self.barer_token=barer_token
+    def connection(self):
+        self.client = tw.Client(bearer_token=self.barer_token , wait_on_rate_limit= True)
+        return self.client
+    
+    def extended_recent_tweets(self, search_query_list , max_results ):          
+        query= [ self.recent_tweets(i,max_results) for i in search_query_list]
+        result = pd.concat(query).reset_index()
+        del(result["index"])
+        return result 
+    
+    def recent_tweets(self, search_query , max_results ):
+        self.tweets=[]
+        for tweet in tw.Paginator(self.client.search_recent_tweets,
+                          search_query,
+                          tweet_fields=['id','text','created_at','author_id','entities']).flatten(limit=max_results):
+            user=self.client.get_user(id= tweet.author_id)
+            self.tweets.append((user,tweet))
+        self.df= self.__formatting()
+        return self.df
+    
+    
+    ##def search_all_tweets NEED TO BE IMPLEMENTED WHEN GET ACCADEMIC 
+    
+    def __formatting(self):
+        df=pd.DataFrame()
+        for user,tweet in self.tweets:
+            id= tweet.id
+            text = tweet.text 
+            user_id = tweet.author_id
+            df=df.append(pd.DataFrame([[id ,text,user_id]], columns= ['id' ,'text' ,'user_id']))
+            #df=df.append({'id':id , 'text':text , 'user_id': user_id})
+            df=df.reset_index(drop=True)
+        return df 
+    
+
 class SocialDataAnalysis():
     """
     SocialDataAnalysis Library
@@ -230,7 +275,7 @@ class SocialDataAnalysisML():
     #     filtered_sentence = list(filter(lambda token: token not in string.punctuation, filtered_sentence))
     #     return filtered_sentence
 
-<<<<<<< HEAD
+
     # def clean_apply(self):
     #     self.df['cleaned'] = self.df.apply(self.clean, axis=1)
     #     return self.df['cleaned']
@@ -259,10 +304,10 @@ class SocialDataAnalysisML():
         model.build_vocab(self.sentences)
         model.train(self.sentences, total_examples=model.corpus_count, epochs=100)
         return model
-=======
-        # # rimuovo punteggiatura
-        self.filtered_sentence = list(filter(lambda token: token not in string.punctuation, self.filtered_sentence))
-        return self.filtered_sentence
+
+        # # # rimuovo punteggiatura
+        # self.filtered_sentence = list(filter(lambda token: token not in string.punctuation, self.filtered_sentence))
+        # return self.filtered_sentence
     
     # def clean_vs_noclean(self):
     #     self.vs=pd.DataFrame()
@@ -271,5 +316,4 @@ class SocialDataAnalysisML():
     #     self.vs["old"]= self.df["text"]
     #     self.vs["cleaned"]= tt
     #     return self.vs
-        
->>>>>>> c25133c20ebf6992f09d907629adee3efd64cc7a
+    
