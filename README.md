@@ -11,7 +11,7 @@
 
 
 # Scope
-Repo of Data Analysis and NPL 
+Repo of Data Analysis and NLP 
 Main Social:
 - Twitter Analysis
 
